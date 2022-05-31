@@ -1,0 +1,45 @@
+
+
+% Store the channel ID for the channel.
+channelID = 1562326;
+
+% Provide the ThingSpeak alerts API key.  All alerts API keys start with TAK.
+alertApiKey = 'TAKWTHY2HA5N4231A259R';
+
+% Set the address for the HTTTP call
+alertUrl="https://api.thingspeak.com/alerts/send";
+
+% webwrite uses weboptions to add required headers.  Alerts needs a ThingSpeak-Alerts-API-Key header.
+options = weboptions("HeaderFields", ["ThingSpeak-Alerts-API-Key", alertApiKey ]);
+
+% Set the email subject.
+alertSubject = sprintf("Waterlevel information");
+
+% Read the recent data.
+Waterlevel = thingSpeakRead(1562326,'NumDays',1,'Fields',1);
+
+% Check to make sure the data was read correctly from the channel.
+if isempty(Waterlevel)
+    alertBody = ' No data read from Waterlevel. ';      
+else
+    % Calculate a threshold value based on recent data.
+    span = max(Waterlevel) - min(Waterlevel);
+    Value = 0.375 * span + min(Waterlevel);
+
+    % Get the most recent point in the array of moisture data.
+    lastValue = Waterlevel(end); 
+
+    % Set the outgoing message
+    if (lastValue<=Value)
+        alertBody = ' Water level safe ';
+    elseif (lastValue>Value)
+        alertBody = ' Water level is Reach warning value ';
+    end
+end
+ 
+ % Catch errors so the MATLAB code does not disable a TimeControl if it fails
+try
+    webwrite(alertUrl , "body", alertBody, "subject", alertSubject, options);
+catch someException
+    fprintf("Failed to send data: %s\n", someException.message);
+end

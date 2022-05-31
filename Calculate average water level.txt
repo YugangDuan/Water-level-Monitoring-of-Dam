@@ -1,0 +1,16 @@
+% Channel ID to read data from 
+readChannelID = 1562326; 
+% Field ID 
+waterFieldID = 1; 
+
+% Channel Read API Key 
+readAPIKey = 'FK6WAOP74EWUD1XR'; 
+
+% Get water data for the last 60 minutes from the channel
+
+
+water = thingSpeakRead(readChannelID,'Fields',waterFieldID,'NumMinutes',60,'ReadKey',readAPIKey); 
+
+% Calculate the average humidity 
+avgwater = mean(water); 
+display(avgwater,'Average water level'); 
